@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+    </head>
+    <body>
+        <pre id="data"></pre>
+        <script>
+            const traffic = localStorage.getItem("apiTraffic");
+            const visitors = localStorage.getItem("uniqueVisitors");
+
+            const data = {
+                success: true,
+                timestamp: new Date().toISOString(),
+                totalCalls: traffic ? JSON.parse(traffic).length : 0,
+                uniqueVisitors: visitors
+                    ? Object.keys(JSON.parse(visitors)).length
+                    : 0,
+                recentTraffic: traffic
+                    ? JSON.parse(traffic).slice(-100).reverse()
+                    : [],
+            };
+
+            document.getElementById("data").textContent = JSON.stringify(
+                data,
+                null,
+                2,
+            );
+            document.head.innerHTML +=
+                '<meta http-equiv="Content-Type" content="application/json">';
+        </script>
+    </body>
+</html>

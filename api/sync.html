@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+    </head>
+    <body>
+        <pre id="data"></pre>
+        <script>
+            const params = new URLSearchParams(window.location.search);
+            const source = params.get("source") || "auto";
+
+            let loaded = false;
+            let records = [];
+
+            if (source === "local" || source === "auto") {
+                const db = localStorage.getItem("urlDatabase");
+                if (db) {
+                    const data = JSON.parse(db);
+                    records = data.records || [];
+                    loaded = true;
+                }
+            }
+
+            if (
+                (source === "url" || source === "auto") &&
+                !loaded &&
+                window.parent
+            ) {
+                const hash = window.parent.location.hash.substring(1);
+                if (hash) {
+                    try {
+                        const data = JSON.parse(decodeURIComponent(atob(hash)));
+                        records = data.records || [];
+                        loaded = true;
+                    } catch (e) {}
+                }
+            }
+
+            const response = {
+                success: loaded,
+                source: source,
+                timestamp: new Date().toISOString(),
+                recordsCount: records.length,
+                message: loaded ? "Sync successful" : "No data found",
+            };
+
+            document.getElementById("data").textContent = JSON.stringify(
+                response,
+                null,
+                2,
+            );
+        </script>
+    </body>
+</html>

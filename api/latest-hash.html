@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+    </head>
+    <body>
+        <pre id="data"></pre>
+        <script>
+            const traffic = localStorage.getItem("apiTraffic");
+            const db = localStorage.getItem("urlDatabase");
+
+            const response = {
+                success: true,
+                timestamp: new Date().toISOString(),
+                currentHash: window.parent
+                    ? window.parent.location.hash
+                    : window.location.hash,
+                localStorageExists: !!db,
+                trafficSummary: {
+                    totalCalls: traffic ? JSON.parse(traffic).length : 0,
+                    lastOperation: traffic ? JSON.parse(traffic).pop() : null,
+                },
+                recommendation: db
+                    ? "Use localStorage data"
+                    : "Use current URL hash",
+            };
+
+            if (db) {
+                const data = JSON.parse(db);
+                response.localStorageData = {
+                    recordsCount: data.records?.length || 0,
+                    lastUpdated: new Date(data.t).toISOString(),
+                };
+            }
+
+            document.getElementById("data").textContent = JSON.stringify(
+                response,
+                null,
+                2,
+            );
+        </script>
+    </body>
+</html>

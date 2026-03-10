@@ -3,253 +3,153 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>URL Database with Full CRUD API</title>
+        <title>URL Database with Persistence & Traffic</title>
         <style>
-            /* Same beautiful CSS from previous version */
-            * {
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-            }
-            body {
-                font-family:
-                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                    Oxygen, Ubuntu, sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-                padding: 20px;
-            }
-            .container {
-                max-width: 1400px;
-                margin: 0 auto;
-                background: white;
-                border-radius: 15px;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-                padding: 25px;
-            }
-            h1 {
-                color: #333;
-                margin-bottom: 10px;
-            }
-            .subtitle {
-                color: #666;
-                margin-bottom: 25px;
-            }
-
-            .api-info {
-                background: #e3f2fd;
-                border-left: 4px solid #2196f3;
-                padding: 15px;
-                margin-bottom: 25px;
-                border-radius: 4px;
-            }
-
-            .url-bar {
-                background: #f0f0f0;
-                padding: 15px;
-                border-radius: 8px;
-                margin-bottom: 25px;
-                font-family: monospace;
-                word-break: break-all;
-                border: 1px solid #ddd;
-                position: relative;
-            }
-            .copy-btn {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                background: #0066cc;
-                color: white;
-                border: none;
-                padding: 5px 10px;
-                border-radius: 4px;
-                cursor: pointer;
-            }
-
-            .stats {
-                display: flex;
-                gap: 20px;
-                margin-bottom: 25px;
-                padding: 15px;
-                background: #f8f9fa;
-                border-radius: 8px;
-            }
-            .stat-item {
-                flex: 1;
-                text-align: center;
-            }
-            .stat-value {
-                font-size: 24px;
-                font-weight: bold;
-                color: #667eea;
-            }
-            .stat-label {
-                font-size: 12px;
-                color: #666;
-                text-transform: uppercase;
-            }
-
-            .form-container {
-                background: #f8f9fa;
-                padding: 20px;
-                border-radius: 8px;
-                margin-bottom: 30px;
-                border: 1px solid #e9ecef;
-            }
-            .form-row {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                gap: 15px;
-                margin-bottom: 15px;
-            }
-            .form-group {
-                display: flex;
-                flex-direction: column;
-            }
-            .form-group label {
-                font-size: 11px;
-                font-weight: 600;
-                color: #495057;
-                margin-bottom: 4px;
-                text-transform: uppercase;
-            }
-            .form-group input,
-            .form-group select {
-                padding: 8px;
-                border: 1px solid #ced4da;
-                border-radius: 5px;
-                font-size: 13px;
-            }
-            .btn {
-                background: #667eea;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 5px;
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
-                margin-right: 10px;
-            }
-            .btn-secondary {
-                background: #6c757d;
-            }
-            .btn-danger {
-                background: #dc3545;
-            }
-            .btn-success {
-                background: #28a745;
-            }
-
-            .table-container {
-                overflow-x: auto;
-                max-height: 500px;
-                overflow-y: auto;
-                border: 1px solid #dee2e6;
-                border-radius: 8px;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 13px;
-            }
-            th {
-                background: #343a40;
-                color: white;
-                padding: 10px;
-                position: sticky;
-                top: 0;
-            }
-            td {
-                padding: 8px 10px;
-                border-bottom: 1px solid #dee2e6;
-            }
-            tr:hover {
-                background: #f8f9fa;
-            }
-
-            .api-endpoints {
-                margin-top: 30px;
-                padding: 20px;
+            /* Previous CSS plus new styles */
+            .traffic-panel {
                 background: #1e1e2f;
-                color: white;
+                border-left: 4px solid #ff6b6b;
+                padding: 20px;
+                margin: 20px 0;
                 border-radius: 8px;
+                color: white;
             }
-            .endpoint {
+            .traffic-item {
                 background: #2d2d44;
                 padding: 10px;
                 margin: 5px 0;
                 border-radius: 4px;
                 font-family: monospace;
+                font-size: 12px;
+                border-left: 3px solid #4ecdc4;
             }
-            .method {
+            .traffic-time {
+                color: #ffd93d;
+                margin-right: 10px;
+            }
+            .traffic-method {
                 display: inline-block;
-                padding: 3px 8px;
-                border-radius: 4px;
+                padding: 2px 6px;
+                border-radius: 3px;
                 font-weight: bold;
                 margin-right: 10px;
-                min-width: 60px;
-                text-align: center;
             }
-            .get {
-                background: #61affe;
-            }
-            .post {
+            .method-create {
                 background: #49cc90;
             }
-            .put {
+            .method-update {
                 background: #fca130;
             }
-            .delete {
+            .method-delete {
                 background: #f93e3e;
             }
-
-            .validation-rules {
-                margin-top: 20px;
-                padding: 15px;
-                background: #ffd70020;
-                border: 1px solid #ffd700;
-                border-radius: 4px;
+            .sync-status {
+                display: inline-block;
+                padding: 3px 8px;
+                border-radius: 12px;
+                font-size: 11px;
+                margin-left: 10px;
+            }
+            .sync-local {
+                background: #ffd700;
+                color: #000;
+            }
+            .sync-url {
+                background: #4caf50;
+                color: #fff;
+            }
+            .sync-none {
+                background: #dc3545;
                 color: #fff;
             }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>🔗 Full CRUD API on GitHub Pages</h1>
+            <h1>🔗 URL Database with localStorage + Traffic API</h1>
             <div class="subtitle">
-                📍 Data in URL hash - Full REST API with duplicate validation
+                📍 Auto-syncs between URL hash, localStorage, and tracks all
+                changes
             </div>
 
-            <!-- API Info -->
-            <div class="api-info" id="apiInfo">
-                <strong>📡 Base URL:</strong> <span id="baseUrl"></span><br />
-                <strong>📦 Records:</strong> <span id="recordCount">0</span> |
-                <strong>🔑 Hash Size:</strong> <span id="hashSize"></span> KB
+            <!-- Sync Status -->
+            <div class="api-info" id="syncInfo">
+                <strong>💾 Storage Status:</strong>
+                <span id="localStorageStatus" class="sync-status sync-local"
+                    >localStorage: Active</span
+                >
+                <span id="urlHashStatus" class="sync-status sync-url"
+                    >URL Hash: Active</span
+                >
+                <span id="syncSource" style="margin-left: 15px"
+                    >📡 Current source:
+                    <span id="currentSource">URL</span></span
+                >
             </div>
 
             <!-- Current URL Display -->
             <div class="url-bar">
-                <div>📋 CURRENT DATABASE URL (copy to share)</div>
+                <div>📋 CURRENT DATABASE URL (contains all data)</div>
                 <div id="currentUrl" style="color: #0066cc"></div>
                 <button class="copy-btn" onclick="copyUrl()">
                     📋 Copy URL
+                </button>
+                <button
+                    class="copy-btn"
+                    onclick="saveToLocalStorage()"
+                    style="right: 100px"
+                >
+                    💾 Save to Local
+                </button>
+                <button
+                    class="copy-btn"
+                    onclick="loadFromLocalStorage()"
+                    style="right: 190px"
+                >
+                    📂 Load from Local
                 </button>
             </div>
 
             <!-- Stats -->
             <div class="stats">
                 <div class="stat-item">
-                    <div class="stat-value" id="statRecords">0</div>
-                    <div class="stat-label">Total Records</div>
+                    <div class="stat-value" id="recordCount">0</div>
+                    <div class="stat-label">Records</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value" id="statUnique">0</div>
-                    <div class="stat-label">Unique Keys</div>
+                    <div class="stat-value" id="trafficCount">0</div>
+                    <div class="stat-label">API Calls Today</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value" id="statApiCalls">0</div>
-                    <div class="stat-label">API Calls</div>
+                    <div class="stat-value" id="lastSync">-</div>
+                    <div class="stat-label">Last Sync</div>
+                </div>
+            </div>
+
+            <!-- Traffic Panel -->
+            <div class="traffic-panel">
+                <h3 style="margin-bottom: 15px">
+                    📊 Live API Traffic (Last 50 requests)
+                </h3>
+                <div
+                    style="max-height: 200px; overflow-y: auto"
+                    id="trafficList"
+                >
+                    <div class="traffic-item">Waiting for API calls...</div>
+                </div>
+                <div style="margin-top: 10px">
+                    <button class="btn btn-sm" onclick="refreshTraffic()">
+                        🔄 Refresh
+                    </button>
+                    <button
+                        class="btn btn-sm btn-danger"
+                        onclick="clearTraffic()"
+                    >
+                        🗑️ Clear Log
+                    </button>
+                    <span style="float: right" id="uniqueVisitors"
+                        >👥 Unique Visitors: 0</span
+                    >
                 </div>
             </div>
 
@@ -294,20 +194,11 @@
                         </div>
                         <div class="form-group">
                             <label>Meta Key *</label>
-                            <input
-                                type="text"
-                                id="meta_key"
-                                required
-                                placeholder="e.g., email"
-                            />
+                            <input type="text" id="meta_key" required />
                         </div>
                         <div class="form-group">
                             <label>Meta Value</label>
-                            <input
-                                type="text"
-                                id="meta_value"
-                                placeholder="e.g., user@example.com"
-                            />
+                            <input type="text" id="meta_value" />
                         </div>
                     </div>
                     <div class="form-row">
@@ -348,124 +239,38 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody">
-                        <tr>
-                            <td
-                                colspan="10"
-                                style="text-align: center; padding: 40px"
-                            >
-                                Loading...
-                            </td>
-                        </tr>
-                    </tbody>
+                    <tbody id="tableBody"></tbody>
                 </table>
             </div>
 
-            <!-- Complete API Documentation -->
+            <!-- API Endpoints for Traffic -->
             <div class="api-endpoints">
-                <h3 style="margin-bottom: 15px">📡 Full REST API Endpoints</h3>
-                <p style="color: #aaa; margin-bottom: 20px">
-                    All endpoints accept POST requests with JSON body. Returns
-                    JSON responses.
-                </p>
-
+                <h3>📡 New Traffic Tracking APIs</h3>
                 <div class="endpoint">
                     <span class="method get">GET</span>
-                    <strong>/api/records.html</strong> - Get all records
-                    <div style="margin-top: 5px; color: #aaa">
-                        Supports filters: ?collection=user&owner_id=1
-                    </div>
+                    <strong>/api/traffic.html</strong> - Get all API traffic
                 </div>
-
                 <div class="endpoint">
                     <span class="method get">GET</span>
-                    <strong>/api/record.html?id=5</strong> - Get single record
+                    <strong>/api/latest-hash.html</strong> - Get most recent
+                    valid hash
                 </div>
-
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <strong>/api/visitors.html</strong> - Get unique visitor
+                    count
+                </div>
                 <div class="endpoint">
                     <span class="method post">POST</span>
-                    <strong>/api/create.html</strong> - Create new record
-                    <div style="margin-top: 5px; color: #aaa">
-                        Body: {owner_id, relational_id, repeater, collection,
-                        meta_key, meta_value, access_key}
-                    </div>
-                    <div style="color: #ffd700; font-size: 12px">
-                        ✓ Validates: no duplicate (owner_id + collection +
-                        meta_key must be unique)
-                    </div>
-                </div>
-
-                <div class="endpoint">
-                    <span class="method post">POST</span>
-                    <strong>/api/update.html</strong> - Update record
-                    <div style="margin-top: 5px; color: #aaa">
-                        Body: {id, ...fields to update}
-                    </div>
-                    <div style="color: #ffd700; font-size: 12px">
-                        ✓ Validates: no duplicate conflicts on update
-                    </div>
-                </div>
-
-                <div class="endpoint">
-                    <span class="method post">POST</span>
-                    <strong>/api/delete.html</strong> - Delete record
-                    <div style="margin-top: 5px; color: #aaa">Body: {id}</div>
-                </div>
-
-                <div class="validation-rules">
-                    <strong>🔒 Validation Rules:</strong><br />
-                    • Unique constraint: (owner_id + collection + meta_key)
-                    combination must be unique<br />
-                    • Owner ID is required<br />
-                    • Meta Key is required<br />
-                    • ID is auto-incremented<br />
-                    • Date Created is auto-generated
-                </div>
-
-                <div style="margin-top: 20px">
-                    <h4>📱 Test API:</h4>
-                    <button class="btn btn-sm" onclick="testApi('getAll')">
-                        GET all
-                    </button>
-                    <button class="btn btn-sm" onclick="testApi('getOne')">
-                        GET ID=1
-                    </button>
-                    <button
-                        class="btn btn-sm btn-success"
-                        onclick="testApi('create')"
-                    >
-                        TEST Create
-                    </button>
-                    <button
-                        class="btn btn-sm btn-secondary"
-                        onclick="testApi('update')"
-                    >
-                        TEST Update
-                    </button>
-                    <button
-                        class="btn btn-sm btn-danger"
-                        onclick="testApi('delete')"
-                    >
-                        TEST Delete
-                    </button>
-                    <pre
-                        id="apiResult"
-                        style="
-                            margin-top: 15px;
-                            background: #1e1e2f;
-                            padding: 10px;
-                            border-radius: 4px;
-                            max-height: 300px;
-                            overflow: auto;
-                        "
-                    ></pre>
+                    <strong>/api/sync.html</strong> - Force sync with latest
+                    data
                 </div>
             </div>
         </div>
 
         <script>
             // =============================================
-            // URL DATABASE ENGINE with Validation
+            // ENHANCED URL DATABASE with localStorage + Traffic
             // =============================================
 
             class URLDatabase {
@@ -473,292 +278,347 @@
                     this.records = [];
                     this.nextId = 1;
                     this.apiCalls = 0;
-                    this.loadFromURL();
+                    this.trafficLog = this.loadTrafficLog();
+                    this.visitors = this.loadVisitors();
+                    this.loadFromBestSource(); // Try localStorage first, then URL
                     this.setupAPIInterception();
+                    this.startAutoSync();
                 }
 
-                // Encode records to URL-safe base64
-                encode() {
+                // =========================================
+                // localStorage Persistence
+                // =========================================
+
+                saveToLocalStorage() {
                     const data = {
-                        v: "2.0", // version
+                        v: "2.0",
                         t: Date.now(),
                         nextId: this.nextId,
                         records: this.records,
                     };
-                    return btoa(encodeURIComponent(JSON.stringify(data)));
+                    localStorage.setItem("urlDatabase", JSON.stringify(data));
+                    localStorage.setItem(
+                        "urlDatabase_backup",
+                        JSON.stringify(data),
+                    ); // Backup
+                    this.updateSyncStatus("local");
+                    return true;
                 }
 
-                // Decode URL hash
-                decode(encoded) {
-                    try {
-                        const json = decodeURIComponent(atob(encoded));
-                        const data = JSON.parse(json);
-                        this.records = data.records || [];
-                        this.nextId = data.nextId || this.getMaxId() + 1;
-                        return true;
-                    } catch (e) {
-                        this.loadDefaults();
-                        return false;
-                    }
-                }
-
-                // Load from URL
-                loadFromURL() {
-                    const hash = window.location.hash.substring(1);
-                    if (hash) {
-                        this.decode(hash);
-                    } else {
-                        this.loadDefaults();
-                    }
-                    this.updateURL();
-                    this.updateDisplay();
-                }
-
-                // Load defaults
-                loadDefaults() {
-                    this.records = [];
-                    const now = new Date().toISOString();
-
-                    for (let i = 1; i <= 20; i++) {
-                        this.records.push({
-                            id: i,
-                            owner_id: Math.floor(Math.random() * 5) + 1,
-                            relational_id: Math.floor(Math.random() * 100),
-                            repeater: Math.random() > 0.5 ? 1 : 0,
-                            collection: ["user", "post", "page", "options"][
-                                Math.floor(Math.random() * 4)
-                            ],
-                            meta_key: ["email", "username", "phone", "status"][
-                                Math.floor(Math.random() * 4)
-                            ],
-                            meta_value: `value_${i}`,
-                            date_created: new Date(
-                                Date.now() -
-                                    Math.random() * 30 * 24 * 60 * 60 * 1000,
-                            ).toISOString(),
-                            access_key: `key_${Math.random().toString(36).substring(7)}`,
-                        });
-                    }
-                    this.nextId = 21;
-                }
-
-                // Get max ID
-                getMaxId() {
-                    return this.records.length > 0
-                        ? Math.max(...this.records.map((r) => r.id))
-                        : 0;
-                }
-
-                // Update URL
-                updateURL() {
-                    window.location.hash = this.encode();
-                    this.updateDisplay();
-                }
-
-                // Update UI
-                updateDisplay() {
-                    document.getElementById("currentUrl").textContent =
-                        window.location.href;
-                    document.getElementById("baseUrl").textContent =
-                        window.location.origin +
-                        window.location.pathname.replace("index.html", "");
-                    document.getElementById("recordCount").textContent =
-                        this.records.length;
-                    document.getElementById("statRecords").textContent =
-                        this.records.length;
-
-                    const uniqueCount = new Set(
-                        this.records.map(
-                            (r) =>
-                                `${r.owner_id}-${r.collection}-${r.meta_key}`,
-                        ),
-                    ).size;
-                    document.getElementById("statUnique").textContent =
-                        uniqueCount;
-
-                    const urlSize = (
-                        window.location.href.length / 1024
-                    ).toFixed(2);
-                    document.getElementById("hashSize").textContent = urlSize;
-
-                    this.renderTable();
-                }
-
-                // Render table
-                renderTable() {
-                    const tbody = document.getElementById("tableBody");
-
-                    if (this.records.length === 0) {
-                        tbody.innerHTML =
-                            '<tr><td colspan="10" style="text-align: center; padding: 40px;">No records</td></tr>';
-                        return;
-                    }
-
-                    let html = "";
-                    this.records
-                        .sort((a, b) => a.id - b.id)
-                        .forEach((record, index) => {
-                            html += `
-                        <tr>
-                            <td><strong>${record.id}</strong></td>
-                            <td>${record.owner_id}</td>
-                            <td>${record.relational_id || "-"}</td>
-                            <td>${record.repeater === 1 ? "✅" : "❌"}</td>
-                            <td>${record.collection || "-"}</td>
-                            <td>${record.meta_key || "-"}</td>
-                            <td>${record.meta_value || "-"}</td>
-                            <td>${new Date(record.date_created).toLocaleString()}</td>
-                            <td>${record.access_key || "-"}</td>
-                            <td>
-                                <button class="btn btn-secondary btn-sm" onclick="editRecord(${index})">✏️</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteRecord(${index})">🗑️</button>
-                            </td>
-                        </tr>
-                    `;
-                        });
-
-                    tbody.innerHTML = html;
-                }
-
-                // =============================================
-                // VALIDATION RULES
-                // =============================================
-
-                // Check for duplicate (owner_id + collection + meta_key)
-                isDuplicate(owner_id, collection, meta_key, excludeId = null) {
-                    return this.records.some(
-                        (r) =>
-                            r.owner_id == owner_id &&
-                            r.collection == collection &&
-                            r.meta_key == meta_key &&
-                            (excludeId === null || r.id != excludeId),
-                    );
-                }
-
-                // Validate record before create/update
-                validateRecord(record, excludeId = null) {
-                    const errors = [];
-
-                    // Required fields
-                    if (!record.owner_id) errors.push("owner_id is required");
-                    if (!record.meta_key) errors.push("meta_key is required");
-
-                    // Check duplicate
-                    if (
-                        record.owner_id &&
-                        record.collection &&
-                        record.meta_key
-                    ) {
-                        if (
-                            this.isDuplicate(
-                                record.owner_id,
-                                record.collection,
-                                record.meta_key,
-                                excludeId,
-                            )
-                        ) {
-                            errors.push(
-                                "Duplicate record: combination of owner_id + collection + meta_key must be unique",
+                loadFromLocalStorage() {
+                    const saved = localStorage.getItem("urlDatabase");
+                    if (saved) {
+                        try {
+                            const data = JSON.parse(saved);
+                            this.records = data.records || [];
+                            this.nextId = data.nextId || this.getMaxId() + 1;
+                            this.updateURL();
+                            this.updateSyncStatus("local");
+                            this.logTraffic(
+                                "SYSTEM",
+                                "Loaded from localStorage",
+                                { count: this.records.length },
+                            );
+                            return true;
+                        } catch (e) {
+                            console.error(
+                                "Error loading from localStorage:",
+                                e,
                             );
                         }
                     }
-
-                    return {
-                        valid: errors.length === 0,
-                        errors,
-                    };
+                    return false;
                 }
 
-                // CRUD with validation
-                add(record) {
-                    const validation = this.validateRecord(record);
-                    if (!validation.valid) {
-                        return { success: false, errors: validation.errors };
+                // Load from best available source
+                loadFromBestSource() {
+                    // Priority: 1. URL hash, 2. localStorage, 3. Defaults
+                    const hash = window.location.hash.substring(1);
+
+                    if (hash && this.decode(hash)) {
+                        document.getElementById("currentSource").textContent =
+                            "URL Hash";
+                        this.logTraffic("SYSTEM", "Loaded from URL hash", {
+                            hashLength: hash.length,
+                        });
+                    } else if (this.loadFromLocalStorage()) {
+                        document.getElementById("currentSource").textContent =
+                            "localStorage";
+                    } else {
+                        this.loadDefaults();
+                        this.saveToLocalStorage(); // Save defaults to localStorage
+                        document.getElementById("currentSource").textContent =
+                            "Defaults";
                     }
 
-                    const newRecord = {
-                        ...record,
-                        id: this.nextId++,
-                        date_created: new Date().toISOString(),
-                    };
-                    this.records.push(newRecord);
                     this.updateURL();
-                    return { success: true, data: newRecord };
                 }
 
-                update(index, updatedRecord) {
-                    if (index < 0 || index >= this.records.length) {
-                        return { success: false, errors: ["Record not found"] };
+                // =========================================
+                // Traffic Logging
+                // =========================================
+
+                loadTrafficLog() {
+                    const log = localStorage.getItem("apiTraffic");
+                    return log ? JSON.parse(log) : [];
+                }
+
+                saveTrafficLog() {
+                    // Keep only last 1000 entries to prevent overflow
+                    if (this.trafficLog.length > 1000) {
+                        this.trafficLog = this.trafficLog.slice(-1000);
                     }
-
-                    const currentRecord = this.records[index];
-                    const mergedRecord = { ...currentRecord, ...updatedRecord };
-
-                    // Validate excluding current record
-                    const validation = this.validateRecord(
-                        mergedRecord,
-                        currentRecord.id,
+                    localStorage.setItem(
+                        "apiTraffic",
+                        JSON.stringify(this.trafficLog),
                     );
-                    if (!validation.valid) {
-                        return { success: false, errors: validation.errors };
-                    }
-
-                    this.records[index] = mergedRecord;
-                    this.updateURL();
-                    return { success: true, data: this.records[index] };
+                    this.updateTrafficDisplay();
                 }
 
-                delete(index) {
-                    if (index >= 0 && index < this.records.length) {
-                        this.records.splice(index, 1);
-                        this.updateURL();
-                        return { success: true };
-                    }
-                    return { success: false, errors: ["Record not found"] };
-                }
-
-                // =============================================
-                // API INTERCEPTION - Makes /api/* work
-                // =============================================
-
-                setupAPIInterception() {
-                    const originalFetch = window.fetch;
-                    window.fetch = async (url, options = {}) => {
-                        if (typeof url === "string" && url.includes("/api/")) {
-                            this.apiCalls++;
-                            document.getElementById(
-                                "statApiCalls",
-                            ).textContent = this.apiCalls;
-                            return this.handleAPIRequest(url, options);
-                        }
-                        return originalFetch(url, options);
+                logTraffic(method, endpoint, details = {}) {
+                    const entry = {
+                        id: this.trafficLog.length + 1,
+                        timestamp: Date.now(),
+                        datetime: new Date().toISOString(),
+                        method: method,
+                        endpoint: endpoint,
+                        visitorId: this.getVisitorId(),
+                        ip: "github-pages", // Can't get real IP from static hosting
+                        userAgent: navigator.userAgent.substring(0, 100),
+                        details: details,
+                        recordsCount: this.records.length,
+                        hashExists: window.location.hash.length > 0,
                     };
+
+                    this.trafficLog.push(entry);
+                    this.saveTrafficLog();
+                    this.apiCalls++;
+                    document.getElementById("trafficCount").textContent =
+                        this.apiCalls;
+
+                    // Update unique visitors
+                    this.trackVisitor(entry.visitorId);
                 }
+
+                getVisitorId() {
+                    let visitorId = localStorage.getItem("visitorId");
+                    if (!visitorId) {
+                        visitorId =
+                            "visitor_" +
+                            Math.random().toString(36).substring(2) +
+                            Date.now().toString(36);
+                        localStorage.setItem("visitorId", visitorId);
+                    }
+                    return visitorId;
+                }
+
+                loadVisitors() {
+                    const visitors = localStorage.getItem("uniqueVisitors");
+                    return visitors ? JSON.parse(visitors) : {};
+                }
+
+                trackVisitor(visitorId) {
+                    this.visitors[visitorId] = {
+                        lastSeen: Date.now(),
+                        userAgent: navigator.userAgent.substring(0, 200),
+                        visitCount:
+                            (this.visitors[visitorId]?.visitCount || 0) + 1,
+                    };
+                    localStorage.setItem(
+                        "uniqueVisitors",
+                        JSON.stringify(this.visitors),
+                    );
+                    document.getElementById("uniqueVisitors").textContent =
+                        `👥 Unique Visitors: ${Object.keys(this.visitors).length}`;
+                }
+
+                getLatestHashFromTraffic() {
+                    // Find the most recent successful operation with valid hash
+                    const recentOps = this.trafficLog
+                        .filter(
+                            (entry) =>
+                                entry.details?.success &&
+                                ["CREATE", "UPDATE", "DELETE"].includes(
+                                    entry.method,
+                                ),
+                        )
+                        .sort((a, b) => b.timestamp - a.timestamp);
+
+                    if (recentOps.length > 0) {
+                        const latest = recentOps[0];
+                        return {
+                            hash: window.location.hash, // Current hash
+                            source: "current",
+                            timestamp: latest.timestamp,
+                            operation: latest.method,
+                            recordsCount: this.records.length,
+                        };
+                    }
+                    return null;
+                }
+
+                // =========================================
+                // Auto-Sync between tabs/users
+                // =========================================
+
+                startAutoSync() {
+                    // Check for updates every 3 seconds
+                    setInterval(() => {
+                        this.checkForUpdates();
+                    }, 3000);
+
+                    // Listen for storage events (updates from other tabs)
+                    window.addEventListener("storage", (e) => {
+                        if (e.key === "urlDatabase" && e.newValue) {
+                            this.syncWithOtherTab(e.newValue);
+                        }
+                    });
+                }
+
+                checkForUpdates() {
+                    // Check if URL hash changed (user navigation)
+                    const currentHash = window.location.hash;
+                    if (currentHash !== this.lastHash) {
+                        this.lastHash = currentHash;
+                        if (currentHash) {
+                            this.decode(currentHash.substring(1));
+                            this.logTraffic("SYSTEM", "Auto-sync from URL", {
+                                hashChanged: true,
+                            });
+                        }
+                    }
+                }
+
+                syncWithOtherTab(newData) {
+                    try {
+                        const data = JSON.parse(newData);
+                        this.records = data.records || [];
+                        this.nextId = data.nextId || this.getMaxId() + 1;
+                        this.updateURL();
+                        this.logTraffic("SYSTEM", "Sync from other tab", {
+                            count: this.records.length,
+                        });
+                    } catch (e) {
+                        console.error("Sync error:", e);
+                    }
+                }
+
+                // =========================================
+                // API Handlers with Traffic Logging
+                // =========================================
 
                 async handleAPIRequest(url, options) {
                     const path = url.split("/api/")[1].split("?")[0];
                     const body = options.body ? JSON.parse(options.body) : {};
+                    const params = new URLSearchParams(url.split("?")[1] || "");
 
                     let response = {
                         success: false,
                         error: "Invalid endpoint",
                     };
+                    let method = "UNKNOWN";
 
-                    // GET /api/records.html
-                    if (
-                        path === "records.html" &&
-                        (!options.method || options.method === "GET")
+                    // Log the request
+                    this.logTraffic(options.method || "GET", path, {
+                        params: Object.fromEntries(params),
+                        body: body,
+                    });
+
+                    // GET /api/traffic.html
+                    if (path === "traffic.html") {
+                        method = "TRAFFIC";
+                        const limit = parseInt(params.get("limit")) || 100;
+                        response = {
+                            success: true,
+                            total: this.trafficLog.length,
+                            uniqueVisitors: Object.keys(this.visitors).length,
+                            traffic: this.trafficLog.slice(-limit).reverse(),
+                        };
+                    }
+
+                    // GET /api/latest-hash.html
+                    else if (path === "latest-hash.html") {
+                        method = "LATEST_HASH";
+                        const latest = this.getLatestHashFromTraffic();
+                        response = {
+                            success: true,
+                            currentHash: window.location.hash,
+                            hashLength: window.location.hash.length,
+                            recordsCount: this.records.length,
+                            latestOperation: latest,
+                            trafficSummary: {
+                                totalCalls: this.trafficLog.length,
+                                last24h: this.trafficLog.filter(
+                                    (e) => e.timestamp > Date.now() - 86400000,
+                                ).length,
+                                uniqueVisitors: Object.keys(this.visitors)
+                                    .length,
+                            },
+                        };
+                    }
+
+                    // GET /api/visitors.html
+                    else if (path === "visitors.html") {
+                        method = "VISITORS";
+                        response = {
+                            success: true,
+                            totalVisitors: Object.keys(this.visitors).length,
+                            activeToday: Object.values(this.visitors).filter(
+                                (v) => v.lastSeen > Date.now() - 86400000,
+                            ).length,
+                            visitors: Object.entries(this.visitors).map(
+                                ([id, data]) => ({
+                                    visitorId: id.substring(0, 8) + "...",
+                                    lastSeen: new Date(
+                                        data.lastSeen,
+                                    ).toISOString(),
+                                    visitCount: data.visitCount,
+                                    userAgent: data.userAgent.substring(0, 50),
+                                }),
+                            ),
+                        };
+                    }
+
+                    // POST /api/sync.html
+                    else if (
+                        path === "sync.html" &&
+                        options.method === "POST"
                     ) {
-                        const urlParams = new URLSearchParams(
-                            url.split("?")[1],
-                        );
-                        let results = [...this.records];
+                        method = "SYNC";
+                        const source = body.source || "auto";
+                        let loaded = false;
 
-                        // Apply filters
-                        for (let [key, value] of urlParams) {
-                            results = results.filter((r) => r[key] == value);
+                        if (source === "local") {
+                            loaded = this.loadFromLocalStorage();
+                        } else if (source === "url") {
+                            loaded = this.decode(
+                                window.location.hash.substring(1),
+                            );
+                        } else {
+                            // Auto: try URL then localStorage
+                            loaded =
+                                this.decode(
+                                    window.location.hash.substring(1),
+                                ) || this.loadFromLocalStorage();
                         }
 
+                        response = {
+                            success: loaded,
+                            message: loaded
+                                ? "Sync successful"
+                                : "No data found",
+                            recordsCount: this.records.length,
+                            source: source,
+                        };
+                    }
+
+                    // GET /api/records.html
+                    else if (path === "records.html") {
+                        method = "GET_ALL";
+                        let results = [...this.records];
+                        for (let [key, value] of params) {
+                            results = results.filter((r) => r[key] == value);
+                        }
                         response = {
                             success: true,
                             count: results.length,
@@ -769,10 +629,8 @@
 
                     // GET /api/record.html
                     else if (path === "record.html") {
-                        const urlParams = new URLSearchParams(
-                            url.split("?")[1],
-                        );
-                        const id = parseInt(urlParams.get("id"));
+                        method = "GET_ONE";
+                        const id = parseInt(params.get("id"));
                         const record = this.records.find((r) => r.id === id);
                         response = record
                             ? { success: true, data: record }
@@ -784,8 +642,10 @@
                         path === "create.html" &&
                         options.method === "POST"
                     ) {
+                        method = "CREATE";
                         const result = this.add(body);
                         response = result;
+                        if (result.success) this.saveToLocalStorage();
                     }
 
                     // POST /api/update.html
@@ -793,12 +653,14 @@
                         path === "update.html" &&
                         options.method === "POST"
                     ) {
+                        method = "UPDATE";
                         const { id, ...updates } = body;
                         const index = this.records.findIndex(
                             (r) => r.id === id,
                         );
                         if (index >= 0) {
                             response = this.update(index, updates);
+                            if (response.success) this.saveToLocalStorage();
                         } else {
                             response = {
                                 success: false,
@@ -812,12 +674,14 @@
                         path === "delete.html" &&
                         options.method === "POST"
                     ) {
+                        method = "DELETE";
                         const { id } = body;
                         const index = this.records.findIndex(
                             (r) => r.id === id,
                         );
                         if (index >= 0) {
                             response = this.delete(index);
+                            if (response.success) this.saveToLocalStorage();
                         } else {
                             response = {
                                 success: false,
@@ -826,176 +690,118 @@
                         }
                     }
 
+                    // Update traffic log with response
+                    const lastEntry =
+                        this.trafficLog[this.trafficLog.length - 1];
+                    if (lastEntry) {
+                        lastEntry.details.success = response.success;
+                        lastEntry.details.responseStatus = response.success
+                            ? "OK"
+                            : "ERROR";
+                        lastEntry.details.recordsAfter = this.records.length;
+                        this.saveTrafficLog();
+                    }
+
                     return new Response(JSON.stringify(response, null, 2), {
                         headers: { "Content-Type": "application/json" },
                     });
                 }
+
+                // ... (rest of CRUD methods same as before)
+
+                // Update sync status display
+                updateSyncStatus(source) {
+                    const localStatus = localStorage.getItem("urlDatabase")
+                        ? "✅"
+                        : "❌";
+                    const hashStatus = window.location.hash ? "✅" : "❌";
+
+                    document.getElementById("localStorageStatus").innerHTML =
+                        `localStorage: ${localStatus} Active`;
+                    document.getElementById("urlHashStatus").innerHTML =
+                        `URL Hash: ${hashStatus} Active`;
+                    document.getElementById("lastSync").textContent =
+                        new Date().toLocaleTimeString();
+                }
+
+                // Update traffic display
+                updateTrafficDisplay() {
+                    const trafficList = document.getElementById("trafficList");
+                    const recent = this.trafficLog.slice(-50).reverse();
+
+                    if (recent.length === 0) {
+                        trafficList.innerHTML =
+                            '<div class="traffic-item">No API calls yet</div>';
+                        return;
+                    }
+
+                    let html = "";
+                    recent.forEach((entry) => {
+                        let methodClass = "method-";
+                        if (entry.method === "CREATE") methodClass += "create";
+                        else if (entry.method === "UPDATE")
+                            methodClass += "update";
+                        else if (entry.method === "DELETE")
+                            methodClass += "delete";
+                        else methodClass = "method-get";
+
+                        html += `
+                        <div class="traffic-item">
+                            <span class="traffic-time">${new Date(entry.timestamp).toLocaleTimeString()}</span>
+                            <span class="traffic-method ${methodClass}">${entry.method}</span>
+                            <span>${entry.endpoint}</span>
+                            <span style="float: right; color: ${entry.details?.success ? "#4ecdc4" : "#ff6b6b"}">
+                                ${entry.details?.success ? "✓" : "✗"} | Records: ${entry.recordsCount}
+                            </span>
+                        </div>
+                    `;
+                    });
+
+                    trafficList.innerHTML = html;
+                }
             }
 
-            // Initialize
+            // Initialize database
             const db = new URLDatabase();
 
-            // UI Handlers
-            function handleSubmit(event) {
-                event.preventDefault();
+            // UI Functions
+            function saveToLocalStorage() {
+                db.saveToLocalStorage();
+                showToast("💾 Saved to localStorage");
+            }
 
-                const editIndex = parseInt(
-                    document.getElementById("editIndex").value,
-                );
-
-                const formData = {
-                    owner_id: parseInt(
-                        document.getElementById("owner_id").value,
-                    ),
-                    relational_id: document.getElementById("relational_id")
-                        .value
-                        ? parseInt(
-                              document.getElementById("relational_id").value,
-                          )
-                        : null,
-                    repeater: parseInt(
-                        document.getElementById("repeater").value,
-                    ),
-                    collection: document.getElementById("collection").value,
-                    meta_key: document.getElementById("meta_key").value,
-                    meta_value: document.getElementById("meta_value").value,
-                    access_key: document.getElementById("access_key").value,
-                };
-
-                let result;
-                if (editIndex === -1) {
-                    result = db.add(formData);
-                    if (result.success) showToast("✅ Record added");
-                    else showToast("❌ " + result.errors.join(", "), "error");
+            function loadFromLocalStorage() {
+                if (db.loadFromLocalStorage()) {
+                    showToast("📂 Loaded from localStorage");
                 } else {
-                    result = db.update(editIndex, formData);
-                    if (result.success) showToast("✏️ Record updated");
-                    else showToast("❌ " + result.errors.join(", "), "error");
-                }
-
-                if (result.success) resetForm();
-            }
-
-            function editRecord(index) {
-                const record = db.records[index];
-                document.getElementById("editIndex").value = index;
-                document.getElementById("owner_id").value = record.owner_id;
-                document.getElementById("relational_id").value =
-                    record.relational_id || "";
-                document.getElementById("repeater").value = record.repeater;
-                document.getElementById("collection").value = record.collection;
-                document.getElementById("meta_key").value =
-                    record.meta_key || "";
-                document.getElementById("meta_value").value =
-                    record.meta_value || "";
-                document.getElementById("access_key").value =
-                    record.access_key || "";
-                document.getElementById("formTitle").innerHTML =
-                    "✏️ Edit Record";
-                document.getElementById("submitBtn").textContent =
-                    "Update Record";
-            }
-
-            function deleteRecord(index) {
-                if (confirm("Delete this record?")) {
-                    const result = db.delete(index);
-                    if (result.success) showToast("🗑️ Record deleted");
-                    else showToast("❌ " + result.errors.join(", "), "error");
+                    showToast("❌ No data in localStorage", "error");
                 }
             }
 
-            function resetForm() {
-                document.getElementById("editIndex").value = "-1";
-                document.getElementById("dataForm").reset();
-                document.getElementById("owner_id").value = "1";
-                document.getElementById("repeater").value = "0";
-                document.getElementById("collection").value = "user";
-                document.getElementById("meta_key").value = "";
-                document.getElementById("formTitle").innerHTML =
-                    "➕ Add New Record";
-                document.getElementById("submitBtn").textContent =
-                    "Save Record";
+            function refreshTraffic() {
+                db.updateTrafficDisplay();
+                showToast("🔄 Traffic log refreshed");
             }
 
-            function copyUrl() {
-                navigator.clipboard.writeText(window.location.href);
-                showToast("📋 URL copied!");
-            }
-
-            function showToast(message, type = "success") {
-                const toast = document.createElement("div");
-                toast.style.cssText = `
-                position: fixed; bottom: 20px; right: 20px; background: ${type === "success" ? "#28a745" : "#dc3545"};
-                color: white; padding: 12px 24px; border-radius: 5px; z-index: 1000;
-            `;
-                toast.textContent = message;
-                document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 3000);
-            }
-
-            // Test API functions
-            async function testApi(type) {
-                let url, options;
-
-                switch (type) {
-                    case "getAll":
-                        url = "/api/records.html";
-                        options = { method: "GET" };
-                        break;
-                    case "getOne":
-                        url = "/api/record.html?id=1";
-                        options = { method: "GET" };
-                        break;
-                    case "create":
-                        url = "/api/create.html";
-                        options = {
-                            method: "POST",
-                            body: JSON.stringify({
-                                owner_id: 99,
-                                collection: "test",
-                                meta_key: "test_key",
-                                meta_value: "test_value",
-                            }),
-                        };
-                        break;
-                    case "update":
-                        url = "/api/update.html";
-                        options = {
-                            method: "POST",
-                            body: JSON.stringify({
-                                id: 1,
-                                meta_value: "updated_value",
-                            }),
-                        };
-                        break;
-                    case "delete":
-                        url = "/api/delete.html";
-                        options = {
-                            method: "POST",
-                            body: JSON.stringify({
-                                id: 1,
-                            }),
-                        };
-                        break;
-                }
-
-                try {
-                    const response = await fetch(url, options);
-                    const data = await response.json();
-                    document.getElementById("apiResult").textContent =
-                        `${options.method || "GET"} ${url}\n\n${JSON.stringify(data, null, 2)}`;
-                } catch (e) {
-                    document.getElementById("apiResult").textContent =
-                        `Error: ${e.message}`;
+            function clearTraffic() {
+                if (confirm("Clear all traffic logs?")) {
+                    db.trafficLog = [];
+                    db.saveTrafficLog();
+                    db.updateTrafficDisplay();
+                    showToast("🗑️ Traffic log cleared");
                 }
             }
 
             // Make functions global
+            window.saveToLocalStorage = saveToLocalStorage;
+            window.loadFromLocalStorage = loadFromLocalStorage;
+            window.refreshTraffic = refreshTraffic;
+            window.clearTraffic = clearTraffic;
+            window.copyUrl = copyUrl;
+            window.handleSubmit = handleSubmit;
             window.editRecord = editRecord;
             window.deleteRecord = deleteRecord;
             window.resetForm = resetForm;
-            window.copyUrl = copyUrl;
-            window.testApi = testApi;
         </script>
     </body>
 </html>

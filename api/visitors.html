@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+    </head>
+    <body>
+        <pre id="data"></pre>
+        <script>
+            const visitors = localStorage.getItem("uniqueVisitors");
+            const visitorsData = visitors ? JSON.parse(visitors) : {};
+
+            const now = Date.now();
+            const activeToday = Object.values(visitorsData).filter(
+                (v) => v.lastSeen > now - 86400000,
+            ).length;
+
+            const response = {
+                success: true,
+                totalUniqueVisitors: Object.keys(visitorsData).length,
+                activeLast24h: activeToday,
+                activeLastHour: Object.values(visitorsData).filter(
+                    (v) => v.lastSeen > now - 3600000,
+                ).length,
+                visitors: Object.entries(visitorsData).map(([id, data]) => ({
+                    visitorId: id.substring(0, 8) + "...",
+                    lastSeen: new Date(data.lastSeen).toISOString(),
+                    visitCount: data.visitCount,
+                    userAgent: data.userAgent.substring(0, 100),
+                })),
+            };
+
+            document.getElementById("data").textContent = JSON.stringify(
+                response,
+                null,
+                2,
+            );
+        </script>
+    </body>
+</html>
