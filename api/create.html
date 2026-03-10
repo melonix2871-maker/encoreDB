@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+    </head>
+    <body>
+        <pre id="data"></pre>
+        <script>
+            // Get hash from parent
+            const hash = window.parent
+                ? window.parent.location.hash.substring(1)
+                : "";
+
+            // Get POST data from form submission or URL
+            const params = new URLSearchParams(window.location.search);
+            const newRecord = {
+                owner_id: parseInt(params.get("owner_id")),
+                relational_id: params.get("relational_id")
+                    ? parseInt(params.get("relational_id"))
+                    : null,
+                repeater: parseInt(params.get("repeater") || "0"),
+                collection: params.get("collection") || "user",
+                meta_key: params.get("meta_key"),
+                meta_value: params.get("meta_value"),
+                access_key: params.get("access_key"),
+            };
+
+            if (!hash) {
+                document.getElementById("data").textContent = JSON.stringify(
+                    {
+                        success: false,
+                        error: "No database found",
+                    },
+                    null,
+                    2,
+                );
+            } else if (!newRecord.owner_id || !newRecord.meta_key) {
+                document.getElementById("data").textContent = JSON.stringify(
+                    {
+                        success: false,
+                        error: "owner_id and meta_key are required",
+                    },
+                    null,
+                    2,
+                );
+            } else {
+                try {
+                    const data = JSON.parse(decodeURIComponent(atob(hash)));
+
+                    // Check for duplicate
+                    const isDuplicate = (data.records || []).some(
+                        (r) =>
+                            r.owner_id == newRecord.owner_id &&
+                            r.collection == newRecord.collection &&
+                            r.meta_key == newRecord.meta_key,
+                    );
+
+                    if (isDuplicate) {
+                        document.getElementById("data").textContent =
+                            JSON.stringify(
+                                {
+                                    success: false,
+                                    error: "Duplicate record: combination owner_id + collection + meta_key must be unique",
+                                },
+                                null,
+                                2,
+                            );
+                    } else {
+                        // Add record
+                        const nextId =
+                            data.nextId ||
+                            (data.records
+                                ? Math.max(...data.records.map((r) => r.id)) + 1
+                                : 1);
+                        const record = {
+                            id: nextId,
+                            ...newRecord,
+                            date_created: new Date().toISOString(),
+                        };
+
+                        if (!data.records) data.records = [];
+                        data.records.push(record);
+                        data.nextId = nextId + 1;
+
+                        // Update parent hash (if in iframe)
+                        if (window.parent) {
+                            window.parent.location.hash = btoa(
+                                encodeURIComponent(JSON.stringify(data)),
+                            );
+                        }
+
+                        document.getElementById("data").textContent =
+                            JSON.stringify(
+                                {
+                                    success: true,
+                                    message: "Record created",
+                                    data: record,
+                                },
+                                null,
+                                2,
+                            );
+                    }
+                } catch (e) {
+                    document.getElementById("data").textContent =
+                        JSON.stringify(
+                            {
+                                success: false,
+                                error: "Invalid database format",
+                            },
+                            null,
+                            2,
+                        );
+                }
+            }
+        </script>
+    </body>
+</html>

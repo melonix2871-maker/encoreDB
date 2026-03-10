@@ -6,15 +6,26 @@
     <body>
         <pre id="data"></pre>
         <script>
-            const hash =
-                window.location.hash.substring(1) ||
-                (window.parent ? window.parent.location.hash.substring(1) : "");
+            const hash = window.parent
+                ? window.parent.location.hash.substring(1)
+                : "";
+            const params = new URLSearchParams(window.location.search);
+            const id = parseInt(params.get("id"));
 
             if (!hash) {
                 document.getElementById("data").textContent = JSON.stringify(
                     {
                         success: false,
-                        error: "No database found. Visit main app first.",
+                        error: "No database found",
+                    },
+                    null,
+                    2,
+                );
+            } else if (!id) {
+                document.getElementById("data").textContent = JSON.stringify(
+                    {
+                        success: false,
+                        error: "Missing id parameter",
                     },
                     null,
                     2,
@@ -22,20 +33,15 @@
             } else {
                 try {
                     const data = JSON.parse(decodeURIComponent(atob(hash)));
-                    const params = new URLSearchParams(window.location.search);
-                    let records = data.records || [];
-
-                    // Apply filters
-                    for (let [key, value] of params) {
-                        records = records.filter((r) => r[key] == value);
-                    }
+                    const record = (data.records || []).find(
+                        (r) => r.id === id,
+                    );
 
                     document.getElementById("data").textContent =
                         JSON.stringify(
                             {
                                 success: true,
-                                count: records.length,
-                                data: records,
+                                data: record || null,
                             },
                             null,
                             2,
@@ -52,14 +58,6 @@
                         );
                 }
             }
-
-            // Set JSON content type
-            document.head.innerHTML +=
-                '<meta http-equiv="Content-Type" content="application/json; charset=utf-8">';
-            document.body.style.fontFamily = "monospace";
-            document.body.style.padding = "20px";
-            document.getElementById("data").style.display = "block";
-            document.getElementById("data").style.whiteSpace = "pre-wrap";
         </script>
     </body>
 </html>

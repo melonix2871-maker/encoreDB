@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+    </head>
+    <body>
+        <pre id="data"></pre>
+        <script>
+            const hash = window.parent
+                ? window.parent.location.hash.substring(1)
+                : "";
+            const params = new URLSearchParams(window.location.search);
+            const id = parseInt(params.get("id"));
+
+            const updates = {
+                owner_id: params.get("owner_id")
+                    ? parseInt(params.get("owner_id"))
+                    : undefined,
+                relational_id: params.get("relational_id")
+                    ? parseInt(params.get("relational_id"))
+                    : null,
+                repeater: params.get("repeater")
+                    ? parseInt(params.get("repeater"))
+                    : undefined,
+                collection: params.get("collection"),
+                meta_key: params.get("meta_key"),
+                meta_value: params.get("meta_value"),
+                access_key: params.get("access_key"),
+            };
+
+            if (!hash) {
+                document.getElementById("data").textContent = JSON.stringify(
+                    {
+                        success: false,
+                        error: "No database found",
+                    },
+                    null,
+                    2,
+                );
+            } else if (!id) {
+                document.getElementById("data").textContent = JSON.stringify(
+                    {
+                        success: false,
+                        error: "Missing id parameter",
+                    },
+                    null,
+                    2,
+                );
+            } else {
+                try {
+                    const data = JSON.parse(decodeURIComponent(atob(hash)));
+                    const index = (data.records || []).findIndex(
+                        (r) => r.id === id,
+                    );
+
+                    if (index === -1) {
+                        document.getElementById("data").textContent =
+                            JSON.stringify(
+                                {
+                                    success: false,
+                                    error: "Record not found",
+                                },
+                                null,
+                                2,
+                            );
+                    } else {
+                        // Check duplicate if changing unique fields
+                        if (
+                            updates.owner_id !== undefined ||
+                            updates.collection !== undefined ||
+                            updates.meta_key !== undefined
+                        ) {
+                            const newOwner =
+                                updates.owner_id ??
+                                data.records[index].owner_id;
+                            const newCollection =
+                                updates.collection ??
+                                data.records[index].collection;
+                            const newMetaKey =
+                                updates.meta_key ??
+                                data.records[index].meta_key;
+
+                            const isDuplicate = data.records.some(
+                                (r, i) =>
+                                    i !== index &&
+                                    r.owner_id == newOwner &&
+                                    r.collection == newCollection &&
+                                    r.meta_key == newMetaKey,
+                            );
+
+                            if (isDuplicate) {
+                                document.getElementById("data").textContent =
+                                    JSON.stringify(
+                                        {
+                                            success: false,
+                                            error: "Update would create duplicate record",
+                                        },
+                                        null,
+                                        2,
+                                    );
+                                return;
+                            }
+                        }
+
+                        // Update record
+                        data.records[index] = {
+                            ...data.records[index],
+                            ...Object.fromEntries(
+                                Object.entries(updates).filter(
+                                    ([_, v]) => v !== undefined,
+                                ),
+                            ),
+                        };
+
+                        if (window.parent) {
+                            window.parent.location.hash = btoa(
+                                encodeURIComponent(JSON.stringify(data)),
+                            );
+                        }
+
+                        document.getElementById("data").textContent =
+                            JSON.stringify(
+                                {
+                                    success: true,
+                                    message: "Record updated",
+                                    data: data.records[index],
+                                },
+                                null,
+                                2,
+                            );
+                    }
+                } catch (e) {
+                    document.getElementById("data").textContent =
+                        JSON.stringify(
+                            {
+                                success: false,
+                                error: "Invalid database format",
+                            },
+                            null,
+                            2,
+                        );
+                }
+            }
+        </script>
+    </body>
+</html>

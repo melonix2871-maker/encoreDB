@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+    </head>
+    <body>
+        <pre id="data"></pre>
+        <script>
+            const hash = window.parent
+                ? window.parent.location.hash.substring(1)
+                : "";
+            const params = new URLSearchParams(window.location.search);
+            const id = parseInt(params.get("id"));
+
+            if (!hash) {
+                document.getElementById("data").textContent = JSON.stringify(
+                    {
+                        success: false,
+                        error: "No database found",
+                    },
+                    null,
+                    2,
+                );
+            } else if (!id) {
+                document.getElementById("data").textContent = JSON.stringify(
+                    {
+                        success: false,
+                        error: "Missing id parameter",
+                    },
+                    null,
+                    2,
+                );
+            } else {
+                try {
+                    const data = JSON.parse(decodeURIComponent(atob(hash)));
+                    const initialLength = (data.records || []).length;
+                    data.records = (data.records || []).filter(
+                        (r) => r.id !== id,
+                    );
+
+                    if (data.records.length === initialLength) {
+                        document.getElementById("data").textContent =
+                            JSON.stringify(
+                                {
+                                    success: false,
+                                    error: "Record not found",
+                                },
+                                null,
+                                2,
+                            );
+                    } else {
+                        if (window.parent) {
+                            window.parent.location.hash = btoa(
+                                encodeURIComponent(JSON.stringify(data)),
+                            );
+                        }
+
+                        document.getElementById("data").textContent =
+                            JSON.stringify(
+                                {
+                                    success: true,
+                                    message: "Record deleted",
+                                    id: id,
+                                },
+                                null,
+                                2,
+                            );
+                    }
+                } catch (e) {
+                    document.getElementById("data").textContent =
+                        JSON.stringify(
+                            {
+                                success: false,
+                                error: "Invalid database format",
+                            },
+                            null,
+                            2,
+                        );
+                }
+            }
+        </script>
+    </body>
+</html>
