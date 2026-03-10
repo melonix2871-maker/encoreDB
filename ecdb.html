@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECDB</title>
+    <style>
+        /* Keep your beautiful CSS from before */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 25px;
+        }
+        h1 { color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .subtitle { color: #666; margin-bottom: 25px; font-size: 14px; }
+        
+        .api-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .url-bar {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-family: monospace;
+            word-break: break-all;
+            border: 1px solid #ddd;
+            position: relative;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .stat-item { flex: 1; text-align: center; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #667eea; }
+        .stat-label { font-size: 12px; color: #666; text-transform: uppercase; }
+        
+        .form-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        .form-group input, .form-group select {
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn-secondary { background: #6c757d; }
+        .btn-danger { background: #dc3545; }
+        
+        .table-container {
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th {
+            background: #343a40;
+            color: white;
+            padding: 10px;
+            position: sticky;
+            top: 0;
+        }
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        tr:hover { background: #f8f9fa; }
+        
+        .api-endpoints {
+            margin-top: 30px;
+            padding: 20px;
+            background: #1e1e2f;
+            color: white;
+            border-radius: 8px;
+        }
+        .endpoint {
+            background: #2d2d44;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .method {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .get { background: #61affe; }
+        .post { background: #49cc90; }
+        .put { background: #fca130; }
+        .delete { background: #f93e3e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            🔗 URL Database with Built-in API
+            <span style="font-size: 14px; background: #4CAF50; color: white; padding: 5px 10px; border-radius: 20px;">
+                Pure GitHub Pages
+            </span>
+        </h1>
+        <div class="subtitle">
+            📍 Data stored in URL hash - Access via web app or API endpoint
+        </div>
+        
+        <!-- API Info -->
+        <div class="api-info" id="apiInfo">
+            <strong>📡 API Endpoint:</strong> <span id="apiUrl"></span><br>
+            <strong>📦 Current Data Size:</strong> <span id="dataSize"></span> KB<br>
+            <strong>🔑 Hash Version:</strong> <span id="hashVersion"></span>
+        </div>
+        
+        <!-- Current URL Display -->
+        <div class="url-bar">
+            <div>📋 SHAREABLE DATABASE URL (contains all data)</div>
+            <div id="currentUrl" style="color: #0066cc; word-break: break-all;"></div>
+            <button class="copy-btn" onclick="copyUrl()">📋 Copy URL</button>
+        </div>
+        
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="recordCount">0</div>
+                <div class="stat-label">Total Records</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="lastUpdate">-</div>
+                <div class="stat-label">Last Updated</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="apiHits">0</div>
+                <div class="stat-label">API Calls (simulated)</div>
+            </div>
+        </div>
+        
+        <!-- Add/Edit Form -->
+        <div class="form-container">
+            <h3 style="margin-bottom: 15px;" id="formTitle">➕ Add New Record</h3>
+            <form id="dataForm" onsubmit="handleSubmit(event)">
+                <input type="hidden" id="editIndex" value="-1">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Owner ID *</label>
+                        <input type="number" id="owner_id" required value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Relational ID</label>
+                        <input type="number" id="relational_id">
+                    </div>
+                    <div class="form-group">
+                        <label>Repeater</label>
+                        <select id="repeater">
+                            <option value="0">0 - No</option>
+                            <option value="1">1 - Yes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Collection</label>
+                        <select id="collection">
+                            <option value="user">User</option>
+                            <option value="post">Post</option>
+                            <option value="page">Page</option>
+                            <option value="options">Options</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Meta Key</label>
+                        <input type="text" id="meta_key">
+                    </div>
+                    <div class="form-group">
+                        <label>Meta Value</label>
+                        <input type="text" id="meta_value">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Access Key</label>
+                        <input type="text" id="access_key">
+                    </div>
+                </div>
+                <div>
+                    <button type="submit" class="btn" id="submitBtn">Save Record</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Data Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Owner</th>
+                        <th>Rel ID</th>
+                        <th>Rep</th>
+                        <th>Collection</th>
+                        <th>Meta Key</th>
+                        <th>Meta Value</th>
+                        <th>Date Created</th>
+                        <th>Access Key</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="10" style="text-align: center; padding: 40px;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- API Documentation -->
+        <div class="api-endpoints">
+            <h3 style="margin-bottom: 15px;">📡 REST API Endpoints</h3>
+            <p style="color: #aaa; margin-bottom: 20px;">
+                Base URL: <span id="baseUrlDisplay"></span><br>
+                <small>All endpoints return JSON. The hash contains your entire database.</small>
+            </p>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span> <strong>/api/records</strong> - Get all records
+                <div style="margin-top: 5px; color: #aaa;">Returns: Array of all records</div>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span> <strong>/api/records/:id</strong> - Get single record
+                <div style="margin-top: 5px; color: #aaa;">Example: /api/records/5</div>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span> <strong>/api/records?collection=user</strong> - Filter by field
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span> <strong>/api/hash</strong> - Get raw hash data
+                <div style="margin-top: 5px; color: #aaa;">Returns the decoded hash content</div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #2d2d44; border-radius: 4px;">
+                <h4>📱 Try the API:</h4>
+                <button class="btn btn-sm" onclick="testApi('all')">GET /api/records</button>
+                <button class="btn btn-sm" onclick="testApi('first')">GET /api/records/1</button>
+                <button class="btn btn-sm" onclick="testApi('filter')">GET /api/records?collection=user</button>
+                <pre id="apiResult" style="margin-top: 15px; background: #1e1e2f; padding: 10px; border-radius: 4px; max-height: 200px; overflow: auto;"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // URL DATABASE ENGINE
+        // =============================================
+        
+        class URLDatabase {
+            constructor() {
+                this.records = [];
+                this.nextId = 1;
+                this.apiCalls = 0;
+                this.loadFromURL();
+                this.setupAPIRouting();
+            }
+            
+            // Encode records to URL-safe base64
+            encode() {
+                const data = {
+                    v: '1.0', // version
+                    t: Date.now(), // timestamp
+                    nextId: this.nextId,
+                    records: this.records
+                };
+                const json = JSON.stringify(data);
+                // Compress with base64
+                return btoa(encodeURIComponent(json));
+            }
+            
+            // Decode URL hash back to records
+            decode(encoded) {
+                try {
+                    const json = decodeURIComponent(atob(encoded));
+                    const data = JSON.parse(json);
+                    this.records = data.records || [];
+                    this.nextId = data.nextId || this.getMaxId() + 1;
+                    return true;
+                } catch (e) {
+                    console.log('No valid data in URL, using defaults');
+                    this.loadDefaults();
+                    return false;
+                }
+            }
+            
+            // Load from URL hash
+            loadFromURL() {
+                const hash = window.location.hash.substring(1); // Remove the #
+                if (hash) {
+                    this.decode(hash);
+                } else {
+                    this.loadDefaults();
+                }
+                this.updateURL();
+                this.updateDisplay();
+            }
+            
+            // Load default 20 records
+            loadDefaults() {
+                this.records = [];
+                const now = new Date().toISOString();
+                
+                const collections = ['user', 'post', 'page', 'options'];
+                const metaKeys = ['email', 'title', 'status', 'theme', 'role', 'language'];
+                
+                for (let i = 1; i <= 20; i++) {
+                    this.records.push({
+                        id: i,
+                        owner_id: Math.floor(Math.random() * 10) + 1,
+                        relational_id: Math.floor(Math.random() * 100) + 100,
+                        repeater: Math.random() > 0.5 ? 1 : 0,
+                        collection: collections[Math.floor(Math.random() * collections.length)],
+                        meta_key: metaKeys[Math.floor(Math.random() * metaKeys.length)],
+                        meta_value: `value_${i}`,
+                        date_created: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+                        access_key: `key_${Math.random().toString(36).substring(7)}`
+                    });
+                }
+                
+                this.nextId = 21;
+            }
+            
+            // Get max ID
+            getMaxId() {
+                return this.records.length > 0 ? Math.max(...this.records.map(r => r.id)) : 0;
+            }
+            
+            // Update URL with current data
+            updateURL() {
+                const encoded = this.encode();
+                window.location.hash = encoded;
+                this.updateDisplay();
+            }
+            
+            // Update UI
+            updateDisplay() {
+                document.getElementById('currentUrl').textContent = window.location.href;
+                document.getElementById('baseUrlDisplay').textContent = window.location.origin + window.location.pathname.replace('index.html', '');
+                document.getElementById('apiUrl').textContent = window.location.origin + window.location.pathname.replace('index.html', '') + 'api/records';
+                
+                const urlSize = (window.location.href.length / 1024).toFixed(2);
+                document.getElementById('dataSize').textContent = urlSize;
+                document.getElementById('recordCount').textContent = this.records.length;
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                document.getElementById('apiHits').textContent = this.apiCalls;
+                document.getElementById('hashVersion').textContent = '1.0';
+                
+                this.renderTable();
+            }
+            
+            // Render table
+            renderTable() {
+                const tbody = document.getElementById('tableBody');
+                
+                if (this.records.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No records found</td></tr>';
+                    return;
+                }
+                
+                let html = '';
+                this.records.sort((a, b) => a.id - b.id).forEach((record, index) => {
+                    html += `
+                        <tr>
+                            <td><strong>${record.id}</strong></td>
+                            <td>${record.owner_id}</td>
+                            <td>${record.relational_id || '-'}</td>
+                            <td>${record.repeater === 1 ? '✅' : '❌'}</td>
+                            <td>${record.collection || '-'}</td>
+                            <td>${record.meta_key || '-'}</td>
+                            <td>${record.meta_value || '-'}</td>
+                            <td>${new Date(record.date_created).toLocaleString()}</td>
+                            <td>${record.access_key || '-'}</td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" onclick="editRecord(${index})">✏️</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteRecord(${index})">🗑️</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tbody.innerHTML = html;
+            }
+            
+            // CRUD Operations
+            add(record) {
+                const newRecord = {
+                    ...record,
+                    id: this.nextId++,
+                    date_created: new Date().toISOString()
+                };
+                this.records.push(newRecord);
+                this.updateURL();
+                return newRecord;
+            }
+            
+            update(index, updatedRecord) {
+                if (index >= 0 && index < this.records.length) {
+                    this.records[index] = {
+                        ...this.records[index],
+                        ...updatedRecord,
+                        id: this.records[index].id
+                    };
+                    this.updateURL();
+                    return true;
+                }
+                return false;
+            }
+            
+            delete(index) {
+                if (index >= 0 && index < this.records.length) {
+                    this.records.splice(index, 1);
+                    this.updateURL();
+                    return true;
+                }
+                return false;
+            }
+            
+            // =============================================
+            // API ROUTING - This makes it work like a real API!
+            // =============================================
+            
+            setupAPIRouting() {
+                // Intercept fetch requests to /api/*
+                const originalFetch = window.fetch;
+                window.fetch = async (url, options) => {
+                    if (typeof url === 'string' && url.includes('/api/')) {
+                        return this.handleAPIRequest(url, options);
+                    }
+                    return originalFetch(url, options);
+                };
+                
+                // Also handle direct XMLHttpRequest
+                const originalXHROpen = XMLHttpRequest.prototype.open;
+                XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+                    if (typeof url === 'string' && url.includes('/api/')) {
+                        this._isAPIRequest = true;
+                        this._apiUrl = url;
+                        this._apiMethod = method;
+                    }
+                    return originalXHROpen.call(this, method, url, ...rest);
+                };
+                
+                const originalXHRSend = XMLHttpRequest.prototype.send;
+                XMLHttpRequest.prototype.send = function(body) {
+                    if (this._isAPIRequest) {
+                        const response = db.handleAPIRequest(this._apiUrl, { method: this._apiMethod, body });
+                        this.status = 200;
+                        this.responseText = JSON.stringify(response);
+                        this.readyState = 4;
+                        this.onreadystatechange?.();
+                        return;
+                    }
+                    return originalXHRSend.call(this, body);
+                };
+                
+                console.log('✅ API routes configured at /api/*');
+            }
+            
+            handleAPIRequest(url, options = {}) {
+                this.apiCalls++;
+                document.getElementById('apiHits').textContent = this.apiCalls;
+                
+                // Parse URL
+                const path = url.replace(/^.*\/api\//, '').split('?')[0];
+                const queryParams = new URLSearchParams(url.split('?')[1] || '');
+                
+                // Route handling
+                if (path === 'records' || path === '') {
+                    // GET /api/records
+                    if (options.method === 'GET' || options.method === undefined) {
+                        let results = [...this.records];
+                        
+                        // Apply filters from query params
+                        for (let [key, value] of queryParams) {
+                            if (key !== 'limit' && key !== 'offset') {
+                                results = results.filter(r => r[key] == value);
+                            }
+                        }
+                        
+                        // Apply pagination
+                        const limit = parseInt(queryParams.get('limit')) || results.length;
+                        const offset = parseInt(queryParams.get('offset')) || 0;
+                        results = results.slice(offset, offset + limit);
+                        
+                        return {
+                            success: true,
+                            count: results.length,
+                            total: this.records.length,
+                            data: results
+                        };
+                    }
+                    
+                    // POST /api/records
+                    if (options.method === 'POST') {
+                        try {
+                            const body = JSON.parse(options.body || '{}');
+                            const newRecord = this.add(body);
+                            return {
+                                success: true,
+                                message: 'Record created',
+                                data: newRecord
+                            };
+                        } catch (e) {
+                            return { success: false, error: 'Invalid JSON' };
+                        }
+                    }
+                }
+                
+                // GET /api/records/:id
+                const idMatch = path.match(/^records\/(\d+)$/);
+                if (idMatch) {
+                    const id = parseInt(idMatch[1]);
+                    const record = this.records.find(r => r.id === id);
+                    
+                    if (options.method === 'GET' || options.method === undefined) {
+                        return record 
+                            ? { success: true, data: record }
+                            : { success: false, error: 'Record not found' };
+                    }
+                    
+                    // PUT /api/records/:id
+                    if (options.method === 'PUT' || options.method === 'PATCH') {
+                        const index = this.records.findIndex(r => r.id === id);
+                        if (index >= 0) {
+                            try {
+                                const body = JSON.parse(options.body || '{}');
+                                this.update(index, body);
+                                return {
+                                    success: true,
+                                    message: 'Record updated',
+                                    data: this.records[index]
+                                };
+                            } catch (e) {
+                                return { success: false, error: 'Invalid JSON' };
+                            }
+                        }
+                        return { success: false, error: 'Record not found' };
+                    }
+                    
+                    // DELETE /api/records/:id
+                    if (options.method === 'DELETE') {
+                        const index = this.records.findIndex(r => r.id === id);
+                        if (index >= 0) {
+                            this.delete(index);
+                            return { success: true, message: 'Record deleted' };
+                        }
+                        return { success: false, error: 'Record not found' };
+                    }
+                }
+                
+                // GET /api/hash - get raw hash data
+                if (path === 'hash') {
+                    try {
+                        const hash = window.location.hash.substring(1);
+                        const decoded = decodeURIComponent(atob(hash));
+                        return {
+                            success: true,
+                            hash: hash,
+                            decoded: JSON.parse(decoded)
+                        };
+                    } catch (e) {
+                        return { success: false, error: 'Invalid hash' };
+                    }
+                }
+                
+                return { success: false, error: 'Endpoint not found' };
+            }
+        }
+        
+        // Initialize database
+        const db = new URLDatabase();
+        
+        // =============================================
+        // UI Handlers
+        // =============================================
+        
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            const editIndex = parseInt(document.getElementById('editIndex').value);
+            
+            const formData = {
+                owner_id: parseInt(document.getElementById('owner_id').value),
+                relational_id: document.getElementById('relational_id').value ? parseInt(document.getElementById('relational_id').value) : null,
+                repeater: parseInt(document.getElementById('repeater').value),
+                collection: document.getElementById('collection').value,
+                meta_key: document.getElementById('meta_key').value,
+                meta_value: document.getElementById('meta_value').value,
+                access_key: document.getElementById('access_key').value
+            };
+            
+            if (editIndex === -1) {
+                db.add(formData);
+                showToast('✅ Record added');
+            } else {
+                db.update(editIndex, formData);
+                showToast('✏️ Record updated');
+            }
+            
+            resetForm();
+        }
+        
+        function editRecord(index) {
+            const record = db.records[index];
+            
+            document.getElementById('editIndex').value = index;
+            document.getElementById('owner_id').value = record.owner_id;
+            document.getElementById('relational_id').value = record.relational_id || '';
+            document.getElementById('repeater').value = record.repeater;
+            document.getElementById('collection').value = record.collection;
+            document.getElementById('meta_key').value = record.meta_key || '';
+            document.getElementById('meta_value').value = record.meta_value || '';
+            document.getElementById('access_key').value = record.access_key || '';
+            
+            document.getElementById('formTitle').innerHTML = '✏️ Edit Record';
+            document.getElementById('submitBtn').textContent = 'Update Record';
+        }
+        
+        function deleteRecord(index) {
+            if (confirm('Delete this record?')) {
+                db.delete(index);
+                showToast('🗑️ Record deleted');
+            }
+        }
+        
+        function resetForm() {
+            document.getElementById('editIndex').value = '-1';
+            document.getElementById('dataForm').reset();
+            document.getElementById('owner_id').value = '1';
+            document.getElementById('repeater').value = '0';
+            document.getElementById('collection').value = 'user';
+            document.getElementById('formTitle').innerHTML = '➕ Add New Record';
+            document.getElementById('submitBtn').textContent = 'Save Record';
+        }
+        
+        function copyUrl() {
+            navigator.clipboard.writeText(window.location.href);
+            showToast('📋 URL copied!');
+        }
+        
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed; bottom: 20px; right: 20px; background: #333;
+                color: white; padding: 12px 24px; border-radius: 5px;
+                z-index: 1000; animation: slideIn 0.3s;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        // Test API functions
+        async function testApi(type) {
+            let url;
+            switch(type) {
+                case 'all':
+                    url = '/api/records';
+                    break;
+                case 'first':
+                    url = '/api/records/1';
+                    break;
+                case 'filter':
+                    url = '/api/records?collection=user';
+                    break;
+            }
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                document.getElementById('apiResult').textContent = 
+                    `GET ${url}\n\n${JSON.stringify(data, null, 2)}`;
+            } catch (e) {
+                document.getElementById('apiResult').textContent = `Error: ${e.message}`;
+            }
+        }
+        
+        // Make functions global
+        window.editRecord = editRecord;
+        window.deleteRecord = deleteRecord;
+        window.resetForm = resetForm;
+        window.copyUrl = copyUrl;
+        window.testApi = testApi;
+    </script>
+</body>
+</html>
